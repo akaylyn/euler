@@ -47,38 +47,40 @@ count:		how many indexes to get
 """
 def get_subset(desc, modifier, index, count):
 
+	debug = 0
 	subset = list()
 	collide = 0
 	for i in range(count):
 		
 		next_index = index+(modifier*i)
-
+		
 		## consider edge restrictions ##
 		# out of range
 		if next_index < 0 or next_index > w*w:
-			print("next index out of range")
-			return subset
+			if debug: print("next index out of range")
+			collide = 1
 		# top edge
-		if next_index/w < w and ("up" in desc):
-			print("hit top edge")
+		if next_index/w < 1 and ("up" in desc):
+			if debug: print("hit top edge ", next_index)
 			collide = 1
 		# left edge
 		if next_index%w == 0 and ("left" in desc):
-			print("hit left edge")
+			if debug: print("hit left edge")
 			collide = 1
 		# right edge
 		if (next_index-20)%w == 0 and ("right" in desc):
-			print("hit right edge")
+			if debug: print("hit right edge")
 			collide = 1
 		# bottom edge
-		if i > (w * w - w) and ("down" in desc):
-			print("hit bottom edge")
+		if next_index > (w * w - w) and ("down" in desc):
+			if debug: print("hit bottom edge")
 			collide = 1
 		
 		subset.append(next_index)
 		if collide is 1:
-			return subset
-	print(index, count, subset)
+			return False
+		
+	if debug: print(index, count, subset)
 	return subset	
 
 pos = {
@@ -89,6 +91,32 @@ pos = {
 	'diag'	: w+1
 }
 
-subset = get_subset("left,up", pos['left']+pos['up'], 0, 4)
-values = [grid[i] for i in subset]
-print(values)
+# get the product of the elements in a list
+def get_product(l):
+	p = 1
+	for i in l:
+		p *= i
+	return p
+
+# Find largest product
+def find_largest_product(desc, modifier, count):
+	debug = 0
+	largest_subset = 0
+	largest_subset_list = list()
+	for i in range(w*w): #default w*w
+		subset = get_subset(desc, modifier, i, count)
+		if subset != False:
+			values = [grid[i] for i in subset]
+			product = get_product(values)
+			if debug: print("index: ", i, subset, values, product)
+			if product > largest_subset:
+				largest_subset = product
+				largest_subset_list = subset, values
+	return largest_subset, largest_subset_list
+
+print("Down: ", find_largest_product("down", pos['down'], 4)) #51267216
+#print("Up: ", find_largest_product("up", pos['up'], 4)) # should be the same as down
+print("Left: ", find_largest_product("left", pos['left'], 4)) #48477312
+#print("Right: ", find_largest_product("right", pos['right'], 4)) #should be the same as left
+print("Diag /: ", find_largest_product("down,left", pos['down']+pos['left'], 4)) #70600674
+print("Diag \: ", find_largest_product("up,left", pos['up']+pos['left'], 4)) #40304286
